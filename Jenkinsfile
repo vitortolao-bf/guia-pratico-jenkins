@@ -1,28 +1,39 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "devopsbemfacil/guia-jenkins"
+        DOCKER_REGISTRY = "https://registry.hub.docker.com"
+        DOCKER_CREDENTIALS_ID = "dockerhub"
+    }
+
     stages {
-        stage ('Build Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    docker = docker.build("devopsbemfacil/guia-jenkins:${env.BUILD_ID}", '-f ./src/Dockerfile ./src')
+                    // Cria a imagem e armazena na variável image
+                    image = docker.build("${env.IMAGE_NAME}:${env.BUILD_ID}", '-f ./src/Dockerfile ./src')
                 }
             }
         }
 
-        stage ('Push Docker Image') {
+        stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                        docker.push("${env.BUILD_ID}")
+                    // Usa withRegistry com imagem criada
+                    docker.withRegistry("${env.DOCKER_REGISTRY}", "${env.DOCKER_CREDENTIALS_ID}") {
+                        image.push("${env.BUILD_ID}")  // faz o push da imagem com a tag BUILD_ID
+                        image.push('latest')          // opcional: também faz push com a tag 'latest'
                     }
                 }
             }
         }
 
-        stage ('Deploy no Kubernetes') {
+        stage('Deploy no Kubernetes') {
             steps {
                 sh 'echo "Executando o comando kubectl apply"'
+                // Você pode substituir pelo comando real, por exemplo:
+                // sh 'kubectl apply -f k8s/deployment.yaml'
             }
         }
     }
