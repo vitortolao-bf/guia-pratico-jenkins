@@ -4,13 +4,19 @@ pipeline {
     stages {
         stage ('Build Docker Image') {
             steps {
-                sh 'echo "Executando o comando Docker Build"'
+                script {
+                    docker = docker.build("devopsbemfacil/guia-jenkins:${env.BUILD_ID}", '-f ./src/Dockerfile ./src')
+                }
             }
         }
 
         stage ('Push Docker Image') {
             steps {
-                sh 'echo "Executando o comando Docker Push"'
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                        docker.push("${env.BUILD_ID}")
+                    }
+                }
             }
         }
 
