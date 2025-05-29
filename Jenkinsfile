@@ -4,7 +4,7 @@ pipeline {
     environment {
         AWS_REGION = 'us-east-1'
         ECR_REPO = '343236792564.dkr.ecr.us-east-1.amazonaws.com/bf-jenkins'
-        IMAGE_NAME = "bf-jenkins/guia-jenkins"
+        IMAGE_NAME = "guia-jenkins"
         IMAGE_TAG = "${BUILD_ID}"
     }
 
@@ -58,7 +58,7 @@ pipeline {
                         script {
                             sh '''
                                 kubectl set image ./k8s/deployment \
-                                image=${ECR_REPO}:${IMAGE_TAG}
+                                conversao-temperatura=${ECR_REPO}:${IMAGE_TAG}
                                 kubectl apply -f ./k8s/deployment
                             '''
                         }
