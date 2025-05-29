@@ -36,6 +36,7 @@ pipeline {
             steps {
                 withKubeConfig([credentialsId: 'eks-bf-retaguarda-poc']) {
                     sh 'sed -i "s/{{tag}}/$tag_version/g" ./k8s/deployment.yaml'
+                    sh 'aws eks --region us-east-1 update-kubeconfig --name bf-retaguarda-poc'
                     sh 'kubectl apply -f k8s/deployment.yaml'
                 }
             }
