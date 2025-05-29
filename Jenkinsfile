@@ -13,7 +13,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${ECR_REPO}:${IMAGE_TAG} -f ./src/Dockerfile ./src"
+                    sh '''
+                        docker build -t ${ECR_REPO}:${IMAGE_TAG} -f ./src/Dockerfile ./src
+                    '''
                 }
             }
         }
@@ -21,10 +23,10 @@ pipeline {
         stage('Login to ECR') {
             steps {
                 script {
-                    sh """
+                    sh '''
                         aws ecr get-login-password --region ${AWS_REGION} | \
                         docker login --username AWS --password-stdin ${ECR_REPO}
-                    """
+                    '''
                 }
             }
         }
@@ -32,7 +34,9 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    sh "docker push ${ECR_REPO}:${IMAGE_TAG}"
+                    sh '''
+                        docker push ${ECR_REPO}:${IMAGE_TAG}
+                    '''
                 }
             }
         }
@@ -40,7 +44,9 @@ pipeline {
         stage('Clean Up Docker Image') {
             steps {
                 script {
-                    sh "docker rmi ${ECR_REPO}:${IMAGE_TAG} || true"
+                    sh '''
+                        docker rmi ${ECR_REPO}:${IMAGE_TAG} || true
+                    '''
                 }
             }
         }
@@ -48,12 +54,14 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    script {
-                        sh """
-                            kubectl set image deployment/bf-jenkins-deployment \
-                            bf-jenkins-container=${ECR_REPO}:${IMAGE_TAG} \
-                            --kubeconfig $KUBECONFIG
-                        """
+                    withEnv(["KUBECONFIG=${KUBECONFIG}"]) {
+                        script {
+                            sh '''
+                                kubectl set image ./k8s/deployment \
+                                image=${ECR_REPO}:${IMAGE_TAG}
+                                kubectl apply -f ./k8s/deployment
+                            '''
+                        }
                     }
                 }
             }
