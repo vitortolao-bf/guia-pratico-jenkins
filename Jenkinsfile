@@ -29,12 +29,22 @@ pipeline {
             }
         }
 
+        stage('Clean Up Docker Image') {
+            steps {
+                script {
+                    // Remove as imagens locais para liberar espaço
+                    sh "docker rmi ${env.IMAGE_NAME}:${env.BUILD_ID} || true"
+                    sh "docker rmi ${env.IMAGE_NAME}:latest || true"
+                }
+            }
+        }
+
         stage('Deploy no Kubernetes') {
             environment {
                 tag_version = "${env.BUILD_ID}"
             }
             steps {
-                withKubeConfig([credentialsId: 'eks-bf-retaguarda-poc']) {
+                withKubeConfig([credentialsId: 'kubeconfig']) {
                     sh 'sed -i "s/{{tag}}/$tag_version/g" ./k8s/deployment.yaml'
                     sh 'kubectl apply -f k8s/deployment.yaml'
                 }
