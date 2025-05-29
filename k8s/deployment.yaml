@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: conversao-temperatura
-        image: devopsbemfacil/guia-jenkins:{{tag}}
+        image: bf-jenkins/guia-jenkins:${IMAGE_TAG}
         ports:
         - containerPort: 8080
 ---
