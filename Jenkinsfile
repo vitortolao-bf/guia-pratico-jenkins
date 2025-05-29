@@ -30,10 +30,14 @@ pipeline {
         }
 
         stage('Deploy no Kubernetes') {
+            environment {
+                tag_version = "${env.BUILD_ID}"
+            }
             steps {
-                sh 'echo "Executando o comando kubectl apply"'
-                // Você pode substituir pelo comando real, por exemplo:
-                // sh 'kubectl apply -f k8s/deployment.yaml'
+                withKubeConfig([credentialsId: 'eks-bf-retaguarda-poc']) {
+                    sh 'sed -i "s/{{tag}}/$tag_version/g" ./k8s/deployment.yaml'
+                    sh 'kubectl apply -f k8s/deployment.yaml'
+                }
             }
         }
     }
