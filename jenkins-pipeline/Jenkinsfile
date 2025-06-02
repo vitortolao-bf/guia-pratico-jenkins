@@ -1,0 +1,81 @@
+pipeline {
+    agent {
+        kubernetes {
+            yaml """
+            apiVersion: v1
+            kind: Pod
+            spec:
+              containers:
+              - name: build
+                image: docker:28.2.2
+                command:
+                - cat
+                tty: true
+                env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-credentials
+                      key: aws_access_key_id
+                - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                    secretKeyRef:
+                      name: aws-credentials
+                      key: aws_secret_access_key
+                - name: AWS_DEFAULT_REGION
+                  value: us-east-1
+                - name: ECR_REPO
+                  value: 343236792564.dkr.ecr.us-east-1.amazonaws.com/bf-jenkins
+                - name: IMAGE_TAG
+                  value: "${env.BUILD_ID}"
+                volumeMounts:
+                - name: docker-sock
+                    mountPath: /var/run/docker.sock
+                volumes:
+                - name: docker-sock
+                hostPath:
+                    path: /var/run/docker.sock
+            """
+        }
+    }
+
+    stages {
+        stage('Docker version') {
+            steps {
+                script {
+                    sh 'docker -v'
+                }
+            }
+        }
+
+        stage('Login no Amazon ECR') {
+            steps {
+                script {
+                    sh 'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO'
+                    // dockerapp = docker.build("${ECR_REPO}:${IMAGE_TAG}", '-f ./src/Dockerfile ./src')
+                }
+            }
+        }
+
+        // stage('Push Docker Image para ECR') {
+        //     steps {
+        //         script {
+        //             dockerapp.push()
+        //             // Opcional: push da tag "latest"
+        //             dockerapp.push('latest')
+        //         }
+        //     }
+        // }
+
+        // stage('Deploy no Kubernetes') {
+        //     steps {
+        //         withKubeConfig([credentialsId: 'kubeconfig']) {
+        //             sh '''
+        //                 sed -i "s|{{tag}}|$IMAGE_TAG|g" ./k8s/deployment.yaml
+        //                 kubectl apply -f ./k8s/deployment.yaml
+        //             '''
+        //         }
+        //     }
+        // }
+    }
+}
