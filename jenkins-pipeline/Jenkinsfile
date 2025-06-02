@@ -7,7 +7,7 @@ kind: Pod
 spec:
   containers:
   - name: build
-    image: docker:28.2.2
+    image: devopsbemfacil/ubuntu-docker-awscli:latest
     command:
     - cat
     tty: true
@@ -43,18 +43,6 @@ spec:
             steps {
                 container('build') {
                     sh 'docker -v'
-                }
-            }
-        }
-
-        stage('Install AWS CLI') {
-            steps {
-                container('build') {
-                    sh 'apk update'
-                    sh 'apk add python3 py3-pip curl unzip'
-                    sh 'curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"'
-                    sh 'unzip awscliv2.zip'
-                    sh './aws/install'
                     sh 'aws --version'
                 }
             }
