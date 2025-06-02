@@ -39,12 +39,21 @@ spec:
         }
     }
     stages {
-        stage('Terraform Init') {
+        stage('Docker version') {
             steps {
                 container('build') {
                     sh 'docker -v'
                 }
             }
         }
+
+        stage('Login to ECR') {
+            steps {
+                container('build') {
+                    sh 'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO'
+                }
+            }
+        }
+        
     }
 }
