@@ -18,11 +18,11 @@ pipeline {
                       name: aws-credentials
                       key: aws_access_key_id
                 - name: AWS_SECRET_ACCESS_KEY
-                valueFrom:
+                  valueFrom:
                     secretKeyRef:
                       name: aws-credentials
                       key: aws_secret_access_key
-                - name: AWS_DEFAULT_REGION
+                - name: AWS_REGION
                   value: us-east-1
                 - name: ECR_REPO
                   value: 343236792564.dkr.ecr.us-east-1.amazonaws.com/bf-jenkins
@@ -33,7 +33,7 @@ pipeline {
                     mountPath: /var/run/docker.sock
               volumes:
               - name: docker-sock
-              hostPath:
+                hostPath:
                   path: /var/run/docker.sock
             """
         }
