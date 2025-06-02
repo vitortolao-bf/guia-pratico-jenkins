@@ -34,48 +34,18 @@ pipeline {
               volumes:
               - name: docker-sock
                 hostPath:
-                    path: /var/run/docker.sock
+                  path: /var/run/docker.sock
             """
         }
     }
-
     stages {
-        stage('Docker version') {
+        stage('Terraform Init') {
             steps {
-                script {
-                    sh 'docker -v'
+                container('terraform') {
+                        sh 'docker -v'
+                    }
                 }
             }
         }
-
-        stage('Login no Amazon ECR') {
-            steps {
-                script {
-                    sh 'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO'
-                    // dockerapp = docker.build("${ECR_REPO}:${IMAGE_TAG}", '-f ./src/Dockerfile ./src')
-                }
-            }
-        }
-
-        // stage('Push Docker Image para ECR') {
-        //     steps {
-        //         script {
-        //             dockerapp.push()
-        //             // Opcional: push da tag "latest"
-        //             dockerapp.push('latest')
-        //         }
-        //     }
-        // }
-
-        // stage('Deploy no Kubernetes') {
-        //     steps {
-        //         withKubeConfig([credentialsId: 'kubeconfig']) {
-        //             sh '''
-        //                 sed -i "s|{{tag}}|$IMAGE_TAG|g" ./k8s/deployment.yaml
-        //                 kubectl apply -f ./k8s/deployment.yaml
-        //             '''
-        //         }
-        //     }
-        // }
     }
 }
