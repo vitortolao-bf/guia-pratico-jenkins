@@ -2,48 +2,47 @@ pipeline {
     agent {
         kubernetes {
             yaml """
-            apiVersion: v1
-            kind: Pod
-            spec:
-              containers:
-              - name: build
-                image: docker:28.2.2
-                command:
-                - cat
-                tty: true
-                env:
-                - name: AWS_ACCESS_KEY_ID
-                  valueFrom:
-                    secretKeyRef:
-                      name: aws-credentials
-                      key: aws_access_key_id
-                - name: AWS_SECRET_ACCESS_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: aws-credentials
-                      key: aws_secret_access_key
-                - name: AWS_REGION
-                  value: us-east-1
-                - name: ECR_REPO
-                  value: 343236792564.dkr.ecr.us-east-1.amazonaws.com/bf-jenkins
-                - name: IMAGE_TAG
-                  value: "${env.BUILD_ID}"
-                volumeMounts:
-                - name: docker-sock
-                    mountPath: /var/run/docker.sock
-              volumes:
-              - name: docker-sock
-                hostPath:
-                  path: /var/run/docker.sock
-            """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: build
+    image: docker:28.2.2
+    command:
+    - cat
+    tty: true
+    env:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: aws-credentials
+          key: aws_access_key_id
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: aws-credentials
+          key: aws_secret_access_key
+    - name: AWS_REGION
+      value: us-east-1
+    - name: ECR_REPO
+      value: 343236792564.dkr.ecr.us-east-1.amazonaws.com/bf-jenkins
+    - name: IMAGE_TAG
+      value: "${env.BUILD_ID}"
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+"""
         }
     }
     stages {
         stage('Terraform Init') {
             steps {
-                container('terraform') {
-                        sh 'docker -v'
-                    }
+                container('build') {
+                    sh 'docker -v'
                 }
             }
         }
