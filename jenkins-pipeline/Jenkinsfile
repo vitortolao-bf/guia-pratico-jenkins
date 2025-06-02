@@ -7,7 +7,7 @@ kind: Pod
 spec:
   containers:
   - name: build
-    image: devopsbemfacil/ubuntu-docker-awscli:latest
+    image: 343236792564.dkr.ecr.us-east-1.amazonaws.com/bf-jenkins:latest
     command:
     - cat
     tty: true
