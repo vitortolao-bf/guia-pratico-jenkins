@@ -57,4 +57,95 @@ spec:
         }
         
     }
+
+    // Bloco de Notificação Discord
+    post {
+        always {
+            script {
+                // Configurações do webhook do Discord
+                def discordWebhookURL = 'https://discord.com/api/webhooks/1380285597939404851/EoBgd6rgCp9FmGjih6Vi3MshfXHBq3cmhlBT8yFHGsH04KhC_xeFm-O7VMeR79YLe2OO'
+                
+                // Obtém informações da build
+                def buildStatus = currentBuild.currentResult ?: 'SUCCESS'
+                def jobName = env.JOB_NAME
+                def buildNumber = env.BUILD_NUMBER
+                def buildDuration = currentBuild.durationString.replace(' and counting', '')
+                def buildUrl = env.BUILD_URL
+                def currentDate = new Date().format("yyyy-MM-dd HH:mm:ss")
+                
+                // Define a cor baseada no status
+                def color
+                switch(buildStatus) {
+                    case 'SUCCESS':
+                        color = 0x00FF00 // Verde
+                        break
+                    case 'UNSTABLE':
+                        color = 0xFFFF00 // Amarelo
+                        break
+                    case 'FAILURE':
+                        color = 0xFF0000 // Vermelho
+                        break
+                    default:
+                        color = 0x808080 // Cinza
+                }
+                
+                // Gera timestamp no formato ISO-8601 sem usar toInstant()
+                def timestamp = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                
+                // Cria a mensagem embed para o Discord
+                def discordMessage = """
+                {
+                    "embeds": [
+                        {
+                            "title": "Status do Build: ${buildStatus}",
+                            "color": ${color},
+                            "fields": [
+                                {
+                                    "name": "Job",
+                                    "value": "${jobName}",
+                                    "inline": true
+                                },
+                                {
+                                    "name": "Build #",
+                                    "value": "${buildNumber}",
+                                    "inline": true
+                                },
+                                {
+                                    "name": "Data",
+                                    "value": "${currentDate}",
+                                    "inline": true
+                                },
+                                {
+                                    "name": "Duração",
+                                    "value": "${buildDuration}",
+                                    "inline": true
+                                },
+                                {
+                                    "name": "Link",
+                                    "value": "[Abrir Build](${buildUrl})",
+                                    "inline": true
+                                }
+                            ],
+                            "footer": {
+                                "text": "Jenkins CI/CD"
+                            },
+                            "timestamp": "${timestamp}"
+                        }
+                    ]
+                }
+                """
+                
+                // Envia a mensagem para o Discord
+                sh """
+                    curl -X POST \
+                    -H 'Content-Type: application/json' \
+                    -d '${discordMessage}' \
+                    ${discordWebhookURL}
+                """
+            }
+        }
+    }
 }
+
+
+
